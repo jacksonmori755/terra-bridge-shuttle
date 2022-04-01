@@ -19,6 +19,7 @@ const ETH_CHAIN_ID = process.env.ETH_CHAIN_ID as string;
 const REDIS_PREFIX = 'eth_shuttle' + ETH_CHAIN_ID.replace('mainnet', '');
 const KEY_LAST_HEIGHT = 'last_height';
 const KEY_NEXT_SEQUENCE = 'next_sequence';
+const KEY_NEXT_NONCE = 'next_nonce';
 const KEY_QUEUE_TX = 'queue_tx';
 const KEY_QUEUE_MISSING_TX = 'queue_missing_tx';
 
@@ -58,6 +59,7 @@ class Shuttle {
   rpushAsync: (key: string, value: string) => Promise<unknown>;
 
   sequence: number;
+  nonce: number;
 
   constructor() {
     // Redis setup
@@ -74,15 +76,22 @@ class Shuttle {
     this.monitoring = new Monitoring();
     this.relayer = new Relayer();
     this.dynamoDB = new DynamoDB();
-    this.sequence = 1;
+    this.sequence = 0;
+    this.nonce = 1;
   }
 
   async startMonitoring() {
     const sequence = await this.getAsync(KEY_NEXT_SEQUENCE);
+    const nonce = await this.getAsync(KEY_NEXT_NONCE);
     if (sequence && sequence !== '') {
       this.sequence = parseInt(sequence);
     } else {
       this.sequence = await this.relayer.loadSequence();
+    }
+    if (nonce && nonce !== '') {
+      this.nonce = parseInt(nonce);
+    } else {
+      this.nonce = 4;
     }
 
     // Graceful shutdown
@@ -152,6 +161,8 @@ class Shuttle {
         monitoringDatas.map((v) => v.txHash)
       );
 
+      console.log('nonce', this.nonce);
+
       // Filter out already processed items
       const monitoringDataAfterFilter = monitoringDatas.filter(
         (v) => !existingTxs[v.txHash]
@@ -159,15 +170,19 @@ class Shuttle {
 
       const relayData = await this.relayer.build(
         monitoringDataAfterFilter,
-        this.sequence
+        this.sequence,
+        this.nonce
       );
 
       if (relayData !== null) {
         // Increase sequence number, only when tx is broadcasted
-        this.sequence++;
+        console.log(this.sequence);
+        this.sequence = Number(this.sequence) + 1;
+        this.nonce = Number(this.nonce) + 1;
 
         await this.rpushAsync(KEY_QUEUE_TX, JSON.stringify(relayData));
         await this.setAsync(KEY_NEXT_SEQUENCE, this.sequence.toString());
+        await this.setAsync(KEY_NEXT_NONCE, this.nonce.toString());
         await this.setAsync(KEY_LAST_HEIGHT, newLastHeight.toString());
 
         // Notify to slack

@@ -72,7 +72,8 @@ export class Relayer {
 
   async build(
     monitoringDatas: MonitoringData[],
-    sequence: number
+    sequence: number,
+    nonce: number
   ): Promise<RelayData | null> {
     const msgs: Msg[] = monitoringDatas.reduce(
       (msgs: Msg[], data: MonitoringData) => {
@@ -94,10 +95,12 @@ export class Relayer {
           data,
           fromAddr,
           toAddr,
-          sequence,
+          3,
           amount
         );
         const info = data.terraAssetInfo;
+        let use_nonce: Number = sequence;
+        use_nonce = nonce;
 
         /* if (info.denom) {
           const denom = info.denom;
@@ -107,8 +110,8 @@ export class Relayer {
         if (info.contract_address) {
           const contract_address = info.contract_address;
           let signData = Web3.utils.soliditySha3Raw(
-            { t: 'string', v: (sequence + 3).toString() },
-            contract_address,
+            { t: 'string', v: use_nonce.toString() },
+            'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
             data.to,
             { t: 'string', v: amount.toString() },
             { t: 'string', v: data.txHash.toString() }
@@ -117,7 +120,7 @@ export class Relayer {
           console.log(
             'soliditySha3Raw',
             Web3.utils.soliditySha3Raw(
-              { t: 'string', v: sequence.toString() },
+              { t: 'string', v: use_nonce.toString() },
               contract_address,
               data.to,
               { t: 'string', v: amount.toString() },
@@ -130,7 +133,7 @@ export class Relayer {
 
           console.log(
             'hashData',
-            sequence.toString(),
+            use_nonce.toString(),
             contract_address,
             data.to,
             amount.toString(),
@@ -147,7 +150,17 @@ export class Relayer {
             )
           );
           const sigObj = secp256k1.ecdsaSign(signMsg, privKey);
-          console.log('signObj', sigObj);
+          console.log('signObj', Buffer.from(sigObj.signature).toString('hex'));
+
+          const msg = {
+            mint: {
+              _amount: amount.toString(),
+              _signature: Buffer.from(sigObj.signature).toString('hex'),
+              _to: data.to,
+              _token: 'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
+              _txHash: data.txHash.toString(),
+            },
+          };
 
           msgs.push(
             new MsgExecuteContract(
@@ -159,18 +172,14 @@ export class Relayer {
                 //   // recipient: toAddr,
                 //   // amount: amount,
                 // },
-                mint: {
-                  _amount: amount.toString(),
-                  _signature: sigObj.toString(),
-                  _to: data.to,
-                  _token: 'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
-                  _txHash: data.txHash.toString(),
-                },
+                ...msg,
                 // set_pub_key: "03bdab50beb1532e83ec9b19f54865dc833d0b3b115bddfdf92745c802b4b007fc"
               },
               []
             )
           );
+
+          console.log('msg', msg);
         }
         /* } else if (info.contract_address && info.is_eth_asset) {
           const contract_address = info.contract_address;
