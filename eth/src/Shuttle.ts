@@ -74,7 +74,7 @@ class Shuttle {
     this.monitoring = new Monitoring();
     this.relayer = new Relayer();
     this.dynamoDB = new DynamoDB();
-    this.sequence = 0;
+    this.sequence = 1;
   }
 
   async startMonitoring() {
@@ -144,7 +144,6 @@ class Shuttle {
 
     // Relay to terra chain
     if (monitoringDatas.length > 0) {
-      
       // Clear missing tx hashes
       await this.clearMissingTxHashes(missingTxHashes);
 

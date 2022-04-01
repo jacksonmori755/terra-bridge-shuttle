@@ -11,8 +11,11 @@ import {
   Tx,
   TxInfo,
 } from '@terra-money/terra.js';
+import Web3 from 'web3';
 import { MonitoringData } from 'Monitoring';
 import axios from 'axios';
+import secp256k1 from 'secp256k1';
+import { randomBytes } from 'crypto';
 import * as http from 'http';
 import * as https from 'https';
 
@@ -86,29 +89,90 @@ export class Relayer {
         }
 
         const amount = data.amount.slice(0, data.amount.length - 12);
+        console.log(
+          'builddata ========================= ',
+          data,
+          fromAddr,
+          toAddr,
+          sequence,
+          amount
+        );
         const info = data.terraAssetInfo;
 
-        if (info.denom) {
+        /* if (info.denom) {
           const denom = info.denom;
 
           msgs.push(new MsgSend(fromAddr, toAddr, [new Coin(denom, amount)]));
-        } else if (info.contract_address && !info.is_eth_asset) {
+        } else if (info.contract_address && !info.is_eth_asset) { */
+        if (info.contract_address) {
           const contract_address = info.contract_address;
+          let signData = Web3.utils.soliditySha3Raw(
+            { t: 'string', v: (sequence + 3).toString() },
+            contract_address,
+            data.to,
+            { t: 'string', v: amount.toString() },
+            { t: 'string', v: data.txHash.toString() }
+          ) as string;
+
+          console.log(
+            'soliditySha3Raw',
+            Web3.utils.soliditySha3Raw(
+              { t: 'string', v: sequence.toString() },
+              contract_address,
+              data.to,
+              { t: 'string', v: amount.toString() },
+              {
+                t: 'string',
+                v: '0x488895500ae629aaebb71f409088abb82a9cf3bac22f51a4fc9f772fd9542335',
+              }
+            )
+          );
+
+          console.log(
+            'hashData',
+            sequence.toString(),
+            contract_address,
+            data.to,
+            amount.toString(),
+            data.txHash.toString()
+          );
+
+          signData = signData.slice(2);
+          const signMsg = Uint8Array.from(Buffer.from(signData, 'hex'));
+          console.log('signMsg length', signData, signMsg, signMsg.length);
+          const privKey = Uint8Array.from(
+            Buffer.from(
+              'd91c7d1ed8b1fe7264d431dd38fb988cd3a78543cfd7b20f6be0e047df30effe',
+              'hex'
+            )
+          );
+          const sigObj = secp256k1.ecdsaSign(signMsg, privKey);
+          console.log('signObj', sigObj);
 
           msgs.push(
             new MsgExecuteContract(
               fromAddr,
               contract_address,
               {
-                transfer: {
-                  recipient: toAddr,
-                  amount: amount,
+                // transfer: {
+                //   // origin
+                //   // recipient: toAddr,
+                //   // amount: amount,
+                // },
+                mint: {
+                  _amount: amount.toString(),
+                  _signature: sigObj.toString(),
+                  _to: data.to,
+                  _token: 'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
+                  _txHash: data.txHash.toString(),
                 },
+                // set_pub_key: "03bdab50beb1532e83ec9b19f54865dc833d0b3b115bddfdf92745c802b4b007fc"
               },
               []
             )
           );
-        } else if (info.contract_address && info.is_eth_asset) {
+        }
+        /* } else if (info.contract_address && info.is_eth_asset) {
           const contract_address = info.contract_address;
 
           msgs.push(
@@ -124,7 +188,7 @@ export class Relayer {
               []
             )
           );
-        }
+        } */
 
         return msgs;
       },
@@ -134,20 +198,24 @@ export class Relayer {
     if (msgs.length === 0) {
       return null;
     }
+    console.log('msgs', msgs);
 
-    // if something wrong, pass undefined to use default gas 
+    // if something wrong, pass undefined to use default gas
     const gasPrices = await this.loadGasPrice(
       TERRA_GAS_PRICE_END_POINT,
       TERRA_GAS_PRICE_DENOM
     ).catch((_) => undefined);
+    console.log('gasPrices', gasPrices);
+    console.log('wallet', this.Wallet);
 
     const tx = await this.Wallet.createAndSignTx({
       msgs,
-      sequence,
-      gasPrices,
+      // sequence,
+      // gasPrices,
     });
 
     const txHash = await this.LCDClient.tx.hash(tx);
+    console.log('txHash', tx, txHash);
 
     return {
       tx,

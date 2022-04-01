@@ -10,3 +10,6 @@ $ cp ./.env_example ./.env
 $ nano ./.env
 $ npm start
 ```
+
+## Fixed
+`monitoring.ts:165, 192`

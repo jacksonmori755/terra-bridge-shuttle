@@ -37,12 +37,19 @@ export class Monitoring {
     const ethContractInfos = EthContractInfos[ETH_CHAIN_ID];
     const terraAssetInfos = TerraAssetInfos[TERRA_CHAIN_ID];
 
+    console.log(
+      'terra ascii',
+      this.Web3.utils.fromAscii('terra1ej058juh27zw6e6c6a9gsgflfvtuaaff56m7dg')
+    );
+
     this.AddressAssetMap = {};
     this.TerraAssetInfos = {};
     for (const [asset, value] of Object.entries(ethContractInfos)) {
-      if (asset === 'minter') {
+      if (asset === 'MultiSig') {
         continue;
       }
+
+      console.log('asset', asset);
 
       const info = terraAssetInfos[asset];
       if (info === undefined) {
@@ -87,6 +94,7 @@ export class Monitoring {
       toBlock,
       missingTxHashes
     );
+    console.log('monitorinDatas', monitoringDatas);
 
     return [toBlock, monitoringDatas];
   }
@@ -112,6 +120,9 @@ export class Monitoring {
     logs.push(...missingLogs);
 
     const txHashMap: { [key: string]: boolean } = {};
+
+    console.log('log', logs);
+
     const monitoringDatas: MonitoringData[] = logs
       .filter((log: any) => {
         return !log['removed'];
@@ -123,7 +134,9 @@ export class Monitoring {
           txHashMap[log.transactionHash] = true;
         }
 
+        console.log('decodedDatalog', log);
         const decodedData = decodeLog(this.Web3, log);
+        console.log('decodedData', decodedData);
 
         const requested = new BigNumber(decodedData['amount']);
         const fee = requested.multipliedBy(FEE_RATE);
@@ -131,14 +144,26 @@ export class Monitoring {
 
         const asset = this.AddressAssetMap[log.address];
         const info = this.TerraAssetInfos[asset];
+        // const terraToAddress = bech32.encode(
+        //   'terra',
+        //   bech32.toWords(hexToBytes(decodedData['recipient'].slice(0, 42)))
+        // )
+        const terraToAddress = Web3.utils.hexToAscii(decodedData['recipient']);
+
+        console.log('decodedData recipient', decodedData['recipient']);
+        console.log(
+          'recipient addr',
+          bech32.encode(
+            'terra',
+            bech32.toWords(hexToBytes(decodedData['recipient'].slice(0, 42)))
+          )
+        );
+
         return {
           blockNumber: log.blockNumber,
           txHash: log.transactionHash,
-          sender: decodedData['_sender'],
-          to: bech32.encode(
-            'terra',
-            bech32.toWords(hexToBytes(decodedData['_to'].slice(0, 42)))
-          ),
+          sender: decodedData['sender'],
+          to: terraToAddress,
           requested: requested.toFixed(0),
           amount: amount.toFixed(0),
           fee: fee.toFixed(0),
@@ -146,7 +171,10 @@ export class Monitoring {
           terraAssetInfo: info,
         };
       });
-
+    // 0x746572726131656a3035386a756832377a7736653663366139677367666c667674756161666635366d376467
+    // terra1ej058juh27zw6e6c6a9gsgflfvtuaaff56m7dg
+    // terra1w3jhyunpx9jk5vp48p4826pjxaa8wdn9fg9fnv
+    // terra1w3jhyunpx9jk5vp48p4826pjxaa8wdsffcjy7
     return monitoringDatas;
   }
 
@@ -162,7 +190,7 @@ export class Monitoring {
           if (
             log.address in this.AddressAssetMap &&
             log.topics[0] ===
-              '0xc3599666213715dfabdf658c56a97b9adfad2cd9689690c70c79b20bc61940c9'
+              '0x7bad95c5817621d8789091ae63d99bf8f7bed9ea4963b10c3d3c6bb7273522b3'
           ) {
             logs.push(log);
             break;
@@ -188,7 +216,8 @@ async function getPastLogs(
       toBlock,
       address,
       topics: [
-        '0xc3599666213715dfabdf658c56a97b9adfad2cd9689690c70c79b20bc61940c9',
+        // '0xc3599666213715dfabdf658c56a97b9adfad2cd9689690c70c79b20bc61940c9',
+        '0x7bad95c5817621d8789091ae63d99bf8f7bed9ea4963b10c3d3c6bb7273522b3',
       ],
     });
   } catch (err) {
@@ -241,19 +270,23 @@ async function getBlockNumber(web3: Web3, retry: number): Promise<number> {
 }
 
 function decodeLog(web3: Web3, log: Log): { [key: string]: string } {
+  console.log(
+    'slicelogtopics',
+    log.topics.slice(1).length ? log.topics.slice(1) : [log.topics[0]]
+  );
   return web3.eth.abi.decodeLog(
     [
       {
-        indexed: true,
+        indexed: false,
         internalType: 'address',
-        name: '_sender',
+        name: 'sender',
         type: 'address',
       },
       {
-        indexed: true,
-        internalType: 'bytes32',
-        name: '_to',
-        type: 'bytes32',
+        indexed: false,
+        internalType: 'bytes',
+        name: 'recipient',
+        type: 'bytes',
       },
       {
         indexed: false,
@@ -261,9 +294,16 @@ function decodeLog(web3: Web3, log: Log): { [key: string]: string } {
         name: 'amount',
         type: 'uint256',
       },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'tokenAddress',
+        type: 'address',
+      },
     ],
     log.data,
-    log.topics.slice(1)
+    log.topics.slice(1).length ? log.topics.slice(1) : [log.topics[0]]
+    // log.topics
   );
 }
 
