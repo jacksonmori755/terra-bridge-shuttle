@@ -121,6 +121,8 @@ export class Monitoring {
       totalPage = txResult.pagination.total / limit;
     } while (++page < totalPage);
 
+    console.log('monitoringDatas', latestHeight);
+
     return [targetHeight, monitoringDatas];
   }
 
@@ -140,6 +142,7 @@ export class Monitoring {
 
     const msgData = msg.toData();
     const msgType = msgData['@type'];
+    // console.log('msgType', msgType);
 
     if (msgType === '/cosmos.bank.v1beta1.MsgSend') {
       const data: MsgSend.Data = msgData as MsgSend.Data;
@@ -184,25 +187,44 @@ export class Monitoring {
       }
     } else if (msgType === '/terra.wasm.v1beta1.MsgExecuteContract') {
       const data: MsgExecuteContract.Data = msgData as MsgExecuteContract.Data;
+      // console.log('data.contract', data.contract)
+      // console.log('this.TerraAssetMapping', this.TerraAssetMapping)
 
       if (data.contract in this.TerraAssetMapping) {
         const asset = this.TerraAssetMapping[data.contract];
         const info = this.TerraAssetInfos[asset];
         const executeMsg = data.execute_msg as any;
 
-        if (!info.is_eth_asset && 'transfer' in executeMsg) {
+        console.log('=== asset, info, executeMsg', asset, info, executeMsg);
+
+        if (!info.is_eth_asset && 'burn' in executeMsg) {
           // Check the msg is 'transfer' for terra asset
-          const transferMsg = executeMsg['transfer'];
-          const recipient = transferMsg['recipient'];
+          const burnMsg = executeMsg['burn'];
+          const recipient = burnMsg['to'];
+
+          // console.log('data.contract', data.contract)
 
           // Check the recipient is TerraTrackingAddress
-          if (recipient === this.TerraTrackingAddress) {
+
+          // if (recipient === this.TerraTrackingAddress) // =============================================== When transfer, the terratrakingaddress is recipient.
+          {
             const blockNumber = tx.height;
             const txHash = tx.txhash;
             const sender = data.sender;
             const to = tx.tx.body.memo ?? '';
 
-            const requested = new BigNumber(transferMsg['amount']);
+            const requested = new BigNumber(burnMsg['amount']);
+
+            console.log(
+              'burnMsg, recipient',
+              burnMsg,
+              recipient,
+              to,
+              blockNumber,
+              txHash,
+              sender,
+              requested
+            );
 
             // Compute fee with minimum fee consideration
             const fee = await this.computeFee(
@@ -228,7 +250,8 @@ export class Monitoring {
               });
             }
           }
-        } else if (info.is_eth_asset && 'burn' in executeMsg) {
+        }
+        /* else if (info.is_eth_asset && 'burn' in executeMsg) {
           // Check the msg is 'burn' for eth asset
           const blockNumber = tx.height;
           const txHash = tx.txhash;
@@ -257,7 +280,7 @@ export class Monitoring {
               blackList: this.EthContracts[asset].black_list,
             });
           }
-        }
+        } */
       }
     }
 

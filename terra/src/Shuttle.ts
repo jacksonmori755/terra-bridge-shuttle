@@ -34,9 +34,9 @@ const SLACK_NOTI_NETWORK = process.env.SLACK_NOTI_NETWORK;
 const SLACK_NOTI_ETH_ASSET = process.env.SLACK_NOTI_ETH_ASSET;
 const SLACK_WEB_HOOK = process.env.SLACK_WEB_HOOK;
 
-const FEE_WHITELIST: string[] = (process.env.FEE_WHITELIST || "")
-  .split(',')
-  .map((s) => s.toLocaleLowerCase());
+// const FEE_WHITELIST: string[] = (process.env.FEE_WHITELIST || "")
+//   .split(',')
+//   .map((s) => s.toLocaleLowerCase());
 
 const ax = axios.create({
   httpAgent: new http.Agent({ keepAlive: true }),
@@ -107,7 +107,7 @@ class Shuttle {
     if (minterNonce && minterNonce !== '') {
       this.minterNonce = parseInt(minterNonce);
     } else {
-      this.minterNonce = 1;
+      this.minterNonce = 2;
     }
 
     // If minter address is set,
@@ -297,18 +297,19 @@ class Shuttle {
       // Fee whitelist for EthAnchor addresses
       for (const index in monitoringDataAfterFilter) {
         const data = monitoringDataAfterFilter[index];
-        if (await this.dynamoDB.isEthAnchorAddress(data.to)) {
-          const requested = new BigNumber(data.requested);
-          const fee = await this.monitoring.computeFee(
-            data.asset,
-            requested,
-            new BigNumber(2.5)
-          );
+        // if (await this.dynamoDB.isEthAnchorAddress(data.to)) {
+        const requested = new BigNumber(data.requested);
+        const fee = await this.monitoring.computeFee(
+          data.asset,
+          requested,
+          new BigNumber(2.5)
+        );
 
-          data.amount = requested.minus(fee).toFixed(0);
-          data.fee = fee.toFixed(0);
-          monitoringDataAfterFilter[index] = data;
-        } else if (FEE_WHITELIST.includes(data.to.toLocaleLowerCase())) {
+        data.amount = requested.minus(fee).toFixed(0);
+        data.fee = fee.toFixed(0);
+        monitoringDataAfterFilter[index] = data;
+        // } else if (FEE_WHITELIST.includes(data.to.toLocaleLowerCase()))
+        {
           data.amount = data.requested;
           data.fee = '0';
           monitoringDataAfterFilter[index] = data;
@@ -322,6 +323,10 @@ class Shuttle {
 
       const relayDatas: RelayData[] = [];
       for (const monitoringData of monitoringDataAfterFilter) {
+        console.log(
+          'this.monitoring.minterAddress',
+          this.monitoring.minterAddress
+        );
         const relayData: RelayData = this.monitoring.minterAddress
           ? await this.relayer.buildMultiSig(
               monitoringData,
@@ -371,9 +376,12 @@ class Shuttle {
         })
       );
 
+      console.log('===== relayData', relayDatas);
+
       // Relay transaction
       for (const relayData of relayDatas) {
-        await this.relayer.relay(relayData);
+        const relayRes = await this.relayer.relay(relayData);
+        console.log('relayRes', relayRes);
       }
     } else {
       await this.setAsync(KEY_LAST_HEIGHT, newLastHeight.toString());

@@ -91,8 +91,9 @@ class Shuttle {
     if (nonce && nonce !== '') {
       this.nonce = parseInt(nonce);
     } else {
-      this.nonce = 4;
+      this.nonce = 7;
     }
+    console.log('this.nonce', this.nonce)
 
     // Graceful shutdown
     let shutdown = false;

@@ -50,6 +50,7 @@ export class DynamoDB {
   constructor() {
     this.client = new DynamoDBClient({
       region: DYNAMO_REGION,
+      endpoint: 'http://localhost:8000',
       credentials: {
         accessKeyId: DYNAMO_ACCESS_KEY_ID,
         secretAccessKey: DYNAMO_SECRET_ACCESS_KEY,
@@ -58,7 +59,7 @@ export class DynamoDB {
   }
 
   async isEthAnchorAddress(recipientAddr: string): Promise<boolean> {
-    if (recipientAddr !== "" && DYNAMO_ENABLE_ETH_ANCHOR_WHITELIST) {
+    if (recipientAddr !== '' && DYNAMO_ENABLE_ETH_ANCHOR_WHITELIST) {
       const params: QueryCommandInput = {
         TableName: DYNAMO_ETH_ANCHOR_TABLE,
         IndexName: 'IndexedByOperationAddr',

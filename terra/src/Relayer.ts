@@ -48,6 +48,7 @@ export class Relayer {
 
     // Must do sort for proper sig check
     this.signerAddresses = this.signerAddresses.sort();
+    console.log('this.signerAddresses', this.signerAddresses);
 
     provider.engine.stop();
     web3.setProvider(provider);
@@ -303,18 +304,30 @@ export class Relayer {
     const terraTxHash = '0x' + monitoringData.txHash;
     const amount = monitoringData.amount + '000000000000';
 
+    const tokenAddr = '0xdF8311E9FdBbd61F2649b6c3F2D7Da7Be9c8c14f';
+
     // build signatures
     const signData = this.web3.utils.soliditySha3(
       minterNonce.toString(),
-      tokenContractAddr,
+      tokenAddr,
       recipient,
       amount,
       terraTxHash
     ) as string;
     const signatures = await this.generateSignatures(signData);
+    console.log(
+      '===== signData',
+      minterNonce.toString(),
+      tokenAddr,
+      recipient,
+      amount,
+      terraTxHash,
+      signatures
+    );
+    console.log('monitoringData', monitoringData);
 
     const data = contract.methods
-      .mint(tokenContractAddr, recipient, amount, terraTxHash, signatures)
+      .withdraw(tokenAddr, recipient, amount, terraTxHash, signatures)
       .encodeABI();
 
     const transactionConfig: TransactionConfig = {
