@@ -144,6 +144,8 @@ export class Monitoring {
 
         const asset = this.AddressAssetMap[log.address];
         const info = this.TerraAssetInfos[asset];
+        console.log('log.address, asset', log.address, asset, info)
+        console.log('addressmap', this.AddressAssetMap, this.TerraAssetInfos)
         // const terraToAddress = bech32.encode(
         //   'terra',
         //   bech32.toWords(hexToBytes(decodedData['recipient'].slice(0, 42)))
@@ -210,6 +212,7 @@ async function getPastLogs(
   address: string[],
   retry: number
 ): Promise<Log[]> {
+  // console.log('past logs address', address)
   try {
     return await web3.eth.getPastLogs({
       fromBlock,

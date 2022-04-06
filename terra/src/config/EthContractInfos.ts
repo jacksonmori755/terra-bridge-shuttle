@@ -205,7 +205,7 @@ const contractInfos: {
     },
     FHM: {
       // contract_address: '0xdF8311E9FdBbd61F2649b6c3F2D7Da7Be9c8c14f',
-      contract_address: '0xCFE8e4B5139652571d16C4832118B91147C5452B',
+      contract_address: '0xD4b04130b09d670A5d91Bd2F7f4E2a9f8ac063F8',
     },
   },
 };
