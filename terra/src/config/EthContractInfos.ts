@@ -201,11 +201,11 @@ const contractInfos: {
   ftm_testnet: {
     // bridge contract address
     minter: {
-      contract_address: '0xD4b04130b09d670A5d91Bd2F7f4E2a9f8ac063F8',
+      contract_address: '0x04750EBDb51d2CBB786cc777ee68488B8d256c52',
     },
     FHM: {
       // contract_address: '0xdF8311E9FdBbd61F2649b6c3F2D7Da7Be9c8c14f',
-      contract_address: '0xD4b04130b09d670A5d91Bd2F7f4E2a9f8ac063F8',
+      contract_address: '0x04750EBDb51d2CBB786cc777ee68488B8d256c52',
     },
   },
 };

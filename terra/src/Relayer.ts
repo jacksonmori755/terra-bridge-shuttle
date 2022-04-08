@@ -291,6 +291,7 @@ export class Relayer {
       recipient = '0x' + monitoringData.to;
     }
 
+    console.log('monitoringData.blackList', monitoringData.blackList);
     // prevent sending to token address
     if (monitoringData.blackList.includes(monitoringData.to)) {
       recipient = ETH_DONATION;
@@ -302,9 +303,9 @@ export class Relayer {
     const tokenContractAddr = monitoringData.contractAddr;
 
     const terraTxHash = '0x' + monitoringData.txHash;
-    const amount = monitoringData.amount + '000000000000';
+    const amount = monitoringData.amount + '000';
 
-    const tokenAddr = '0xdF8311E9FdBbd61F2649b6c3F2D7Da7Be9c8c14f';
+    const tokenAddr = '0x55d3dcB94dfBb1a67F56143aF3743abdFf54B7AF';
 
     // build signatures
     const signData = this.web3.utils.soliditySha3(

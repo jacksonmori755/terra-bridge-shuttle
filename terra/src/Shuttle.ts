@@ -110,6 +110,8 @@ class Shuttle {
       this.minterNonce = 2;
     }
 
+    console.log('this.minterNonce', this.minterNonce);
+
     // If minter address is set,
     // we check the address is current owner of token contracts
     if (this.monitoring.minterAddress) {
@@ -181,7 +183,7 @@ class Shuttle {
       }
 
       await this.process().catch(async (err) => {
-        console.error(`Process failed: ${err}`);
+        console.error(`Process failed: ${err.toString()}`);
 
         // ignore invalid project id error
         if (

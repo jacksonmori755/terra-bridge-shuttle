@@ -91,7 +91,7 @@ class Shuttle {
     if (nonce && nonce !== '') {
       this.nonce = parseInt(nonce);
     } else {
-      this.nonce = 7;
+      this.nonce = 11;
     }
     console.log('this.nonce', this.nonce)
 
@@ -169,6 +169,8 @@ class Shuttle {
         (v) => !existingTxs[v.txHash]
       );
 
+      console.log('monitoringDataAfterFilter', monitoringDataAfterFilter);
+
       const relayData = await this.relayer.build(
         monitoringDataAfterFilter,
         this.sequence,
@@ -224,7 +226,7 @@ class Shuttle {
 
     // When catch the latest block height, wait 10 second
     if (newLastHeight === lastHeight) {
-      await Bluebird.delay((ETH_BLOCK_SECOND * ETH_BLOCK_LOAD_UNIT * 1000) / 2);
+      await Bluebird.delay((ETH_BLOCK_SECOND * ETH_BLOCK_LOAD_UNIT * 1000) / 10);
     }
   }
 

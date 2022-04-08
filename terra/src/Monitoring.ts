@@ -84,6 +84,7 @@ export class Monitoring {
         contract_address: value.contract_address,
         black_list: [value.contract_address, ...(value.black_list ?? [])],
       };
+      console.log('this.EthContracts[asset]', this.EthContracts[asset]);
       this.TerraAssetMapping[info.denom || info.contract_address || ''] = asset;
     }
   }

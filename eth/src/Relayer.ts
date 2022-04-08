@@ -75,21 +75,26 @@ export class Relayer {
     sequence: number,
     nonce: number
   ): Promise<RelayData | null> {
+    console.log('relayer.build')
     const msgs: Msg[] = monitoringDatas.reduce(
       (msgs: Msg[], data: MonitoringData) => {
+        console.log('monitoringDatas reduce')
         const fromAddr = this.Wallet.key.accAddress;
+        console.log('fromAddr', fromAddr);
 
         // If the given `to` address not proper address,
         // relayer send the funds to donation address
         const toAddr = AccAddress.validate(data.to) ? data.to : TERRA_DONATION;
+        console.log('toAddr', toAddr);
+        console.log('data', data);
 
         // 18 decimal to 6 decimal
         // it must bigger than 1,000,000,000,000
-        if (data.amount.length < 13) {
+        if (data.amount.length < 2) {
           return msgs;
         }
 
-        const amount = data.amount.slice(0, data.amount.length - 12);
+        const amount = data.amount.slice(0, data.amount.length - 3);
         console.log(
           'builddata ========================= ',
           data,
@@ -107,6 +112,7 @@ export class Relayer {
 
           msgs.push(new MsgSend(fromAddr, toAddr, [new Coin(denom, amount)]));
         } else if (info.contract_address && !info.is_eth_asset) { */
+        console.log('info.contract_address', info.contract_address)
         if (info.contract_address) {
           const contract_address = info.contract_address;
           let signData = Web3.utils.soliditySha3Raw(
