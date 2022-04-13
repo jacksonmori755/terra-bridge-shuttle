@@ -50,7 +50,6 @@ export class DynamoDB {
   constructor() {
     this.client = new DynamoDBClient({
       region: DYNAMO_REGION,
-      endpoint: 'http://localhost:8000',
       credentials: {
         accessKeyId: DYNAMO_ACCESS_KEY_ID,
         secretAccessKey: DYNAMO_SECRET_ACCESS_KEY,

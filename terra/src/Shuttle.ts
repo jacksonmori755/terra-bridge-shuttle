@@ -96,6 +96,14 @@ class Shuttle {
   }
 
   async startMonitoring() {
+    // const msg = "0xcbd4426eda4ebe0352cdd1809ae200c3aaa8738f765a464947e4513eb5353d02";
+    // const sig1 = await this.relayer.generateSignature(msg, "0x13c671CD13C3b645A91b5a7dcbf58C10F4E4Fe6e");
+    // const sig2 = await this.relayer.generateSignature(msg, "0x90904E78236768ad037d44dabE1FC155852588C2");
+    // console.log('**sig**', sig1, sig2)
+
+    // await this.delAsync(KEY_NEXT_NONCE)
+    await this.delAsync(KEY_LAST_HEIGHT);
+
     const nonce = await this.getAsync(KEY_NEXT_NONCE);
     if (nonce && nonce !== '') {
       this.nonce = parseInt(nonce);
@@ -107,8 +115,9 @@ class Shuttle {
     if (minterNonce && minterNonce !== '') {
       this.minterNonce = parseInt(minterNonce);
     } else {
-      this.minterNonce = 2;
+      this.minterNonce = 9;
     }
+    // this.minterNonce = 11;
 
     console.log('this.minterNonce', this.minterNonce);
 
@@ -158,7 +167,7 @@ class Shuttle {
         }
 
         // reset nonce to 1
-        this.minterNonce = 1;
+        this.minterNonce = 9;
         await this.setAsync(KEY_MINTER_ADDRESS, this.monitoring.minterAddress);
         await this.setAsync(KEY_NEXT_MINTER_NONCE, this.minterNonce.toString());
       }
@@ -183,7 +192,7 @@ class Shuttle {
       }
 
       await this.process().catch(async (err) => {
-        console.error(`Process failed: ${err.toString()}`);
+        console.error(`Process failed: ${JSON.stringify(err)}`);
 
         // ignore invalid project id error
         if (

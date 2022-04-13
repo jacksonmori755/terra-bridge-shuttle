@@ -44,6 +44,7 @@ class Shuttle {
 
   getAsync: (key: string) => Promise<string | null>;
   setAsync: (key: string, val: string) => Promise<unknown>;
+  delAsync: (key: string) => Promise<unknown>;
   llenAsync: (key: string) => Promise<number>;
   lsetAsync: (key: string, index: number, val: string) => Promise<unknown>;
   lrangeAsync: (
@@ -67,6 +68,7 @@ class Shuttle {
 
     this.getAsync = promisify(redisClient.get).bind(redisClient);
     this.setAsync = promisify(redisClient.set).bind(redisClient);
+    this.delAsync = promisify(redisClient.del).bind(redisClient);
     this.llenAsync = promisify(redisClient.llen).bind(redisClient);
     this.lsetAsync = promisify(redisClient.lset).bind(redisClient);
     this.lrangeAsync = promisify(redisClient.lrange).bind(redisClient);
@@ -81,6 +83,9 @@ class Shuttle {
   }
 
   async startMonitoring() {
+    
+    await this.delAsync(KEY_LAST_HEIGHT)
+
     const sequence = await this.getAsync(KEY_NEXT_SEQUENCE);
     const nonce = await this.getAsync(KEY_NEXT_NONCE);
     if (sequence && sequence !== '') {
@@ -91,7 +96,7 @@ class Shuttle {
     if (nonce && nonce !== '') {
       this.nonce = parseInt(nonce);
     } else {
-      this.nonce = 11;
+      this.nonce = 24;
     }
     console.log('this.nonce', this.nonce)
 
@@ -107,7 +112,7 @@ class Shuttle {
 
     while (!shutdown) {
       await this.process().catch(async (err) => {
-        console.error(`Process failed: ${err}`);
+        console.error(`Process failed: ${JSON.stringify(err)}`);
 
         // ignore invalid project id error
         if (err.message.includes('invalid project id')) {
