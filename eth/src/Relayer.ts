@@ -90,17 +90,17 @@ export class Relayer {
 
         // 18 decimal to 6 decimal
         // it must bigger than 1,000,000,000,000
-        if (data.amount.length < 2) {
+        if (data.amount.length < 12) {
           return msgs;
         }
 
-        const amount = data.amount.slice(0, data.amount.length - 3);
+        const amount = data.amount.slice(0, data.amount.length - 12);
         console.log(
           'builddata ========================= ',
           data,
           fromAddr,
           toAddr,
-          3,
+          12,
           amount
         );
         const info = data.terraAssetInfo;
@@ -117,7 +117,7 @@ export class Relayer {
           const contract_address = info.contract_address;
           let signData = Web3.utils.soliditySha3Raw(
             { t: 'string', v: use_nonce.toString() },
-            'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
+            contract_address,
             data.to,
             { t: 'string', v: amount.toString() },
             { t: 'string', v: data.txHash.toString() }
@@ -140,7 +140,7 @@ export class Relayer {
           console.log(
             'hashData',
             use_nonce.toString(),
-            contract_address,
+            data.bridge_contract_address,
             data.to,
             amount.toString(),
             data.txHash.toString()
@@ -148,6 +148,7 @@ export class Relayer {
 
           signData = signData.slice(2);
           const signMsg = Uint8Array.from(Buffer.from(signData, 'hex'));
+          const bridge_contract_address = data.bridge_contract_address ? data.bridge_contract_address : "terra1cjzlxltxmmtc7pnvkwn5rs3rl496pvwe4m0y8y";
           console.log('signMsg length', signData, signMsg, signMsg.length);
           const privKey = Uint8Array.from(
             Buffer.from(
@@ -163,7 +164,7 @@ export class Relayer {
               _amount: amount.toString(),
               _signature: Buffer.from(sigObj.signature).toString('hex'),
               _to: data.to,
-              _token: 'terra139sre3kwut3gljnhf0g3r27u9jw9u4vup2tjkf',
+              _token: contract_address,
               _txHash: data.txHash.toString(),
             },
           };
@@ -171,7 +172,7 @@ export class Relayer {
           msgs.push(
             new MsgExecuteContract(
               fromAddr,
-              contract_address,
+              bridge_contract_address,
               {
                 // transfer: {
                 //   // origin

@@ -24,7 +24,13 @@ const assetInfos: {
       denom: 'umnt',
     },
     FHM: {
-      contract_address: 'terra1marwy7xz56jfy64fa4jvuc40059u4rfnje00mw',
+      contract_address: 'terra1fvr56w2lddnpf25rkpl8mzkldxfjl3sw2mgc52',
+    },
+    USDB: {
+      contract_address: 'terra1yc68z9lhdl6huhf8pqmn9kke6d8fn44aef4tsm',
+    },
+    MultiSig: {
+      contract_address: 'terra1cjzlxltxmmtc7pnvkwn5rs3rl496pvwe4m0y8y',
     },
   },
   'columbus-5': {

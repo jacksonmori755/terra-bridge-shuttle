@@ -102,6 +102,7 @@ class Shuttle {
     // console.log('**sig**', sig1, sig2)
 
     // await this.delAsync(KEY_NEXT_NONCE)
+    // await this.delAsync(KEY_NEXT_MINTER_NONCE)
     await this.delAsync(KEY_LAST_HEIGHT);
 
     const nonce = await this.getAsync(KEY_NEXT_NONCE);
@@ -115,9 +116,9 @@ class Shuttle {
     if (minterNonce && minterNonce !== '') {
       this.minterNonce = parseInt(minterNonce);
     } else {
-      this.minterNonce = 9;
+      this.minterNonce = 1;
     }
-    // this.minterNonce = 11;
+    // this.minterNonce = 1;
 
     console.log('this.minterNonce', this.minterNonce);
 
@@ -167,7 +168,7 @@ class Shuttle {
         }
 
         // reset nonce to 1
-        this.minterNonce = 9;
+        // this.minterNonce = 9;
         await this.setAsync(KEY_MINTER_ADDRESS, this.monitoring.minterAddress);
         await this.setAsync(KEY_NEXT_MINTER_NONCE, this.minterNonce.toString());
       }

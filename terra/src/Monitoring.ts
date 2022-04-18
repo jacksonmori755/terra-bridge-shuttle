@@ -198,9 +198,9 @@ export class Monitoring {
 
         console.log('=== asset, info, executeMsg', asset, info, executeMsg);
 
-        if (!info.is_eth_asset && 'burn' in executeMsg) {
-          // Check the msg is 'transfer' for terra asset
-          const burnMsg = executeMsg['burn'];
+        if (!info.is_eth_asset && 'burn_wrapped' in executeMsg) {
+          // Check the msg is 'burn' for terra asset
+          const burnMsg = executeMsg['burn_wrapped'];
           const recipient = burnMsg['to'];
 
           // console.log('data.contract', data.contract)

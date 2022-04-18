@@ -85,6 +85,7 @@ class Shuttle {
   async startMonitoring() {
     
     await this.delAsync(KEY_LAST_HEIGHT)
+    // await this.delAsync(KEY_NEXT_NONCE)
 
     const sequence = await this.getAsync(KEY_NEXT_SEQUENCE);
     const nonce = await this.getAsync(KEY_NEXT_NONCE);
@@ -96,7 +97,7 @@ class Shuttle {
     if (nonce && nonce !== '') {
       this.nonce = parseInt(nonce);
     } else {
-      this.nonce = 24;
+      this.nonce = 1;
     }
     console.log('this.nonce', this.nonce)
 

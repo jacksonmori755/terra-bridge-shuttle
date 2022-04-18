@@ -297,15 +297,17 @@ export class Relayer {
       recipient = ETH_DONATION;
     }
 
+    console.log('monitoringData', monitoringData, minterAddr);
     const contract = new this.web3.eth.Contract(MinterAbi);
     const contractAddr = minterAddr;
 
     const tokenContractAddr = monitoringData.contractAddr;
 
     const terraTxHash = '0x' + monitoringData.txHash;
-    const amount = monitoringData.amount + '000';
+    const amount = monitoringData.amount + '000000000000';
 
-    const tokenAddr = '0x55d3dcB94dfBb1a67F56143aF3743abdFf54B7AF';
+    // const tokenAddr = '0x55d3dcB94dfBb1a67F56143aF3743abdFf54B7AF';
+    const tokenAddr = monitoringData.contractAddr;
 
     // build signatures
     const signData = this.web3.utils.soliditySha3(
@@ -333,7 +335,7 @@ export class Relayer {
 
     const transactionConfig: TransactionConfig = {
       from: this.fromAddress,
-      to: contractAddr,
+      to: minterAddr,
       value: '0',
       gas: 200000,
       gasPrice,

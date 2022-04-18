@@ -45,9 +45,9 @@ export class Monitoring {
     this.AddressAssetMap = {};
     this.TerraAssetInfos = {};
     for (const [asset, value] of Object.entries(ethContractInfos)) {
-      if (asset === 'MultiSig') {
-        continue;
-      }
+      // if (asset === 'MultiSig') {
+      //   continue;
+      // }
 
       console.log('asset', asset);
 
@@ -142,7 +142,8 @@ export class Monitoring {
         const fee = requested.multipliedBy(FEE_RATE);
         const amount = requested.minus(fee);
 
-        const asset = this.AddressAssetMap[log.address];
+        // const asset = this.AddressAssetMap[log.address];
+        const asset = this.AddressAssetMap[decodedData.tokenAddress];
         const info = this.TerraAssetInfos[asset];
         console.log('log.address, asset', log.address, asset, info)
         console.log('addressmap', this.AddressAssetMap, this.TerraAssetInfos)
@@ -170,6 +171,7 @@ export class Monitoring {
           amount: amount.toFixed(0),
           fee: fee.toFixed(0),
           asset,
+          bridge_contract_address: TerraAssetInfos[TERRA_CHAIN_ID].MultiSig.contract_address,
           terraAssetInfo: info,
         };
       });
@@ -325,6 +327,7 @@ export type MonitoringData = {
   amount: string;
   fee: string;
   asset: string;
+  bridge_contract_address: string | undefined,
 
   // terra side data for relayer
   terraAssetInfo: TerraAssetInfo;

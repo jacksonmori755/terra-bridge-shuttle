@@ -200,12 +200,15 @@ const contractInfos: {
   },
   ftm_testnet: {
     MultiSig: {
-      contract_address: '0x04750EBDb51d2CBB786cc777ee68488B8d256c52',
+      contract_address: '0xba65E925Ce6F537990DB49F005955b4280FddA19',
     },
     FHM: {
       // contract_address: '0xdF8311E9FdBbd61F2649b6c3F2D7Da7Be9c8c14f',
-      contract_address: '0x04750EBDb51d2CBB786cc777ee68488B8d256c52',
+      contract_address: '0x9dAdc36cef5158e35c2cc2b5403e82AEa1E3BdA6',
     },
+    USDB: {
+      contract_address: '0x2c2Eb66e59301Ae563b1bFC708303E8a54716E7a',
+    }
   },
 };
 
