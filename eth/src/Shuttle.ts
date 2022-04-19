@@ -12,6 +12,7 @@ BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_DOWN });
 import { Monitoring, MonitoringData } from './Monitoring';
 import { Relayer, RelayDataRaw } from './Relayer';
 import { DynamoDB } from './DynamoDB';
+import { MongoDB } from './MongoDB';
 
 const ETH_CHAIN_ID = process.env.ETH_CHAIN_ID as string;
 
@@ -41,6 +42,7 @@ class Shuttle {
   monitoring: Monitoring;
   relayer: Relayer;
   dynamoDB: DynamoDB;
+  mongoDB: MongoDB;
 
   getAsync: (key: string) => Promise<string | null>;
   setAsync: (key: string, val: string) => Promise<unknown>;
@@ -78,13 +80,13 @@ class Shuttle {
     this.monitoring = new Monitoring();
     this.relayer = new Relayer();
     this.dynamoDB = new DynamoDB();
+    this.mongoDB = new MongoDB();
     this.sequence = 0;
     this.nonce = 1;
   }
 
   async startMonitoring() {
-    
-    await this.delAsync(KEY_LAST_HEIGHT)
+    await this.delAsync(KEY_LAST_HEIGHT);
     // await this.delAsync(KEY_NEXT_NONCE)
 
     const sequence = await this.getAsync(KEY_NEXT_SEQUENCE);
@@ -99,7 +101,7 @@ class Shuttle {
     } else {
       this.nonce = 1;
     }
-    console.log('this.nonce', this.nonce)
+    console.log('this.nonce', this.nonce);
 
     // Graceful shutdown
     let shutdown = false;
@@ -164,7 +166,7 @@ class Shuttle {
       await this.clearMissingTxHashes(missingTxHashes);
 
       // Batch load processed txs from the dynamoDB
-      const existingTxs = await this.dynamoDB.hasTransactions(
+      const existingTxs = await this.mongoDB.hasTransactions(
         monitoringDatas.map((v) => v.txHash)
       );
 
@@ -212,7 +214,7 @@ class Shuttle {
         console.info(`Relay Success: ${relayData.txHash}`);
 
         // Batch write transaction info
-        await this.dynamoDB.storeTransactions(
+        await this.mongoDB.storeTransactions(
           monitoringDataAfterFilter.map((v) => {
             return {
               sender: v.sender,
@@ -232,7 +234,9 @@ class Shuttle {
 
     // When catch the latest block height, wait 10 second
     if (newLastHeight === lastHeight) {
-      await Bluebird.delay((ETH_BLOCK_SECOND * ETH_BLOCK_LOAD_UNIT * 1000) / 10);
+      await Bluebird.delay(
+        (ETH_BLOCK_SECOND * ETH_BLOCK_LOAD_UNIT * 1000) / 10
+      );
     }
   }
 
