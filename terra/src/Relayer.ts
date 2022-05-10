@@ -249,7 +249,14 @@ export class Relayer {
     const contract = new this.web3.eth.Contract(WrappedTokenAbi);
     const contractAddr = monitoringData.contractAddr;
 
-    const amount = monitoringData.amount + '000000000000';
+    // const amount = monitoringData.amount + '000000000000';
+    let amount = "0";
+    if (monitoringData.asset === 'FHM') {
+      amount = monitoringData.amount + '000';
+    } else {
+      amount = monitoringData.amount + '000000000000';
+    }
+    
     const data = contract.methods.mint(recipient, amount).encodeABI();
 
     const transactionConfig: TransactionConfig = {
@@ -304,7 +311,14 @@ export class Relayer {
     const tokenContractAddr = monitoringData.contractAddr;
 
     const terraTxHash = '0x' + monitoringData.txHash;
-    const amount = monitoringData.amount + '000000000000';
+    
+    // const amount = monitoringData.amount + '000000000000';
+    let amount = "0";
+    if (monitoringData.asset === 'FHM') {
+      amount = monitoringData.amount + '000';
+    } else {
+      amount = monitoringData.amount + '000000000000';
+    }
 
     // const tokenAddr = '0x55d3dcB94dfBb1a67F56143aF3743abdFf54B7AF';
     const tokenAddr = monitoringData.contractAddr;
