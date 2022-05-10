@@ -11,6 +11,7 @@ BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_DOWN });
 import { Monitoring, MonitoringData } from './Monitoring';
 import { Relayer, RelayData } from './Relayer';
 import { DynamoDB } from './DynamoDB';
+import { MongoDB } from './MongoDB';
 
 const ETH_CHAIN_ID = process.env.ETH_CHAIN_ID as string;
 const ETH_BLOCK_CONFIRMATION = parseInt(
@@ -48,6 +49,7 @@ class Shuttle {
   monitoring: Monitoring;
   relayer: Relayer;
   dynamoDB: DynamoDB;
+  mongoDB: MongoDB;
 
   getAsync: (key: string) => Promise<string | null>;
   setAsync: (key: string, val: string) => Promise<unknown>;
@@ -88,6 +90,7 @@ class Shuttle {
     this.monitoring = new Monitoring();
     this.relayer = new Relayer();
     this.dynamoDB = new DynamoDB();
+    this.mongoDB = new MongoDB();
 
     this.nonce = 0;
     this.minterNonce = 0;
@@ -296,8 +299,8 @@ class Shuttle {
     }
 
     if (monitoringDatas.length > 0) {
-      // Batch load processed txs from the dynamoDB
-      const existingTxs = await this.dynamoDB.hasTransactions(
+      // Batch load processed txs from the mongoDB
+      const existingTxs = await this.mongoDB.hasTransactions(
         monitoringDatas.map((v) => v.txHash)
       );
 
@@ -309,7 +312,7 @@ class Shuttle {
       // Fee whitelist for EthAnchor addresses
       for (const index in monitoringDataAfterFilter) {
         const data = monitoringDataAfterFilter[index];
-        // if (await this.dynamoDB.isEthAnchorAddress(data.to)) {
+        // if (await this.mongoDB.isEthAnchorAddress(data.to)) {
         const requested = new BigNumber(data.requested);
         const fee = await this.monitoring.computeFee(
           data.asset,
@@ -375,7 +378,7 @@ class Shuttle {
       await this.delAsync(KEY_LAST_TXHASH);
 
       // Batch write transaction info
-      await this.dynamoDB.storeTransactions(
+      await this.mongoDB.storeTransactions(
         monitoringDataAfterFilter.map((v, i) => {
           return {
             sender: v.sender,
@@ -465,7 +468,7 @@ class Shuttle {
           await this.lsetAsync(KEY_QUEUE_TX, idx, JSON.stringify(newRelayData));
 
           if (relayData.fromTxHash) {
-            await this.dynamoDB.updateReplaceTxHashes(
+            await this.mongoDB.updateReplaceTxHashes(
               relayData.fromTxHash,
               newRelayData.txHash
             );

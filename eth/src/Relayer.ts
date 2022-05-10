@@ -93,8 +93,17 @@ export class Relayer {
         if (data.amount.length < 12) {
           return msgs;
         }
+        
+        // let amount = data.amount.slice(0, data.amount.length - 12);
+        let amount = "0";
 
-        const amount = data.amount.slice(0, data.amount.length - 12);
+        // Decimal Changed in FHM to 9, and in USDB: original 18.
+        if (data.asset === 'FHM') {
+          amount = data.amount.slice(0, data.amount.length - 3);
+        } else/*  if (data.asset === 'USDB') */ {
+          amount = data.amount.slice(0, data.amount.length - 12);
+        }
+
         console.log(
           'builddata ========================= ',
           data,

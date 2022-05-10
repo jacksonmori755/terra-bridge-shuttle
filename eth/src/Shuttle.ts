@@ -86,6 +86,16 @@ class Shuttle {
   }
 
   async startMonitoring() {
+
+    // await this.mongoDB.storeTransaction({
+    //   amount: 'data.amount',
+    //   asset: 'data.asset',
+    //   fromTxHash: 'data.fromTxHash',
+    //   toTxHash: 'data.toTxHash',
+    //   sender: 'data.sender',
+    //   recipient: 'data.recipient',
+    // });
+
     await this.delAsync(KEY_LAST_HEIGHT);
     // await this.delAsync(KEY_NEXT_NONCE)
 

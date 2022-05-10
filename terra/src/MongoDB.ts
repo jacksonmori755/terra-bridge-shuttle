@@ -4,7 +4,7 @@ require('dotenv').config();
 const ETH_CHAIN_ID = process.env.ETH_CHAIN_ID as string;
 const MONGO_URL = process.env.MONGO_URL as string;
 const DB_NAME = process.env.DB_NAME as string;
-const SHUTTLE_ID = `ETH_SHUTTLE_${ETH_CHAIN_ID.toUpperCase().replace(
+const SHUTTLE_ID = `TERRA_SHUTTLE_${ETH_CHAIN_ID.toUpperCase().replace(
     '-',
     '_'
 )}`;
@@ -148,6 +148,11 @@ export class MongoDB {
         } catch (err) {
             console.error(err);
         }
+    }
+
+    async updateReplaceTxHashes(fromTxHash: string, toTxHash: string) {
+        UserModel.updateOne({ "fromTxHash": fromTxHash }, 
+            { $set: { "toTxHash": toTxHash } });
     }
 
     async disconnect() {
